@@ -23,14 +23,14 @@ def read_root():
 
 
 @app.get("/api")
-def read_api(names: List[str] = Query(..., description="List of names")):
+def read_api(name: List[str] = Query(..., description="List of names")):
     try:
         data_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "data", "q-vercel-python.json"))
 
         with open(data_path, "r") as file:
             data = json.load(file)
 
-        marks = [i["marks"] for i in data if i["name"] in names]
+        marks = [i["marks"] for i in data if i["name"] in name]
         return JSONResponse(content={"marks": marks})
 
     except Exception as e:
