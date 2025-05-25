@@ -24,15 +24,17 @@ def read_root():
 
 @app.get("/api")
 def read_api(names: List[str] = Query(..., description="List of names")):
-    # Safely construct the path to the JSON file
-    current_dir = os.path.dirname(__file__)
-    data_path = os.path.join(current_dir, "../data/q-vercel-python.json")
+    try:
+        data_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "data", "q-vercel-python.json"))
 
-    with open(data_path, "r") as file:
-        data = json.load(file)
+        with open(data_path, "r") as file:
+            data = json.load(file)
 
-    marks = [i["marks"] for i in data if i["name"] in names]
+        marks = [i["marks"] for i in data if i["name"] in names]
+        return JSONResponse(content={"marks": marks})
 
-    return JSONResponse(content={"marks": marks})
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
 
 handler = Mangum(app)    
