@@ -1,8 +1,10 @@
-# main.py
-from fastapi import FastAPI, Query
-from typing import List
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Query
+from fastapi.responses import JSONResponse
+from typing import List
+import os
 import json
+from mangum import Mangum
 
 app = FastAPI()
 
@@ -19,14 +21,18 @@ app.add_middleware(
 def read_root():
     return {"message": "Hello, World!"}
 
+
 @app.get("/api")
 def read_api(names: List[str] = Query(..., description="List of names")):
-    with open("q-vercel-python.json", "r") as file:
+    # Safely construct the path to the JSON file
+    current_dir = os.path.dirname(__file__)
+    data_path = os.path.join(current_dir, "../data/q-vercel-python.json")
+
+    with open(data_path, "r") as file:
         data = json.load(file)
-    l = []
-    for i in data:
-        for j in names:
-            if i["name"] == j:
-                l.append(i["marks"])
-    return {"marks": l}
-    
+
+    marks = [i["marks"] for i in data if i["name"] in names]
+
+    return JSONResponse(content={"marks": marks})
+
+handler = Mangum(app)    
